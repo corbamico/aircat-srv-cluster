@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aircat-srv
+  namespace: aircat-system
+spec:
+  selector:
+    matchLabels:
+      app: aircat-srv
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: aircat-srv
+    spec:
+      containers:
+      - name: aircat-srv
+        image: aircat-srv-go
+        args:
+          - --cluster
+          - --logtostderr
+          - --v=7
+          - --init-delay=3
+        resources: {}
+        ports:
+        - containerPort: 9000
+          name: tcp
+        - containerPort: 8080
+          name: http

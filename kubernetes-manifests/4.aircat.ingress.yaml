@@ -1,0 +1,20 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: aircat-traffic-router
+  namespace: aircat-system
+  annotations:
+    nginx.ingress.kubernetes.io/configration-snippet: |
+      rewrite /aircat/api/(.*)  /$1 break;
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /
+            backend:
+              serviceName: grafana
+              servicePort: 8080
+          - path: /aircat/api
+            backend:
+              serviceName: aircat-srv
+              servicePort: 8080  

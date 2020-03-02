@@ -1,0 +1,55 @@
+@startuml arch
+!includeurl lib/grafana.puml
+!include <c4/C4_Container.puml>
+!include <tupadr3/common>
+!include <tupadr3/devicons/redis>
+!include <tupadr3/font-awesome/database>
+!include <kubernetes/k8s-sprites-labeled-25pct>
+
+Person(user,"user")
+Person(device,"device")
+
+System_Boundary(phicommaircatsrv,"phicomm-aircat-srv"){
+    System(ing,"ingress\n<$ing>")
+    Container(aircatsrvservice,"aircat-srv-svc\n<$svc>","service")
+    Container(restsrvservice,"restsrv-svc\n<$svc>","service")
+
+    FA_DATABASE(influxdb,influxdb,database,SteelBlue) #LightBlue
+    DEV_REDIS(redis,redis,rectangle,SteelBlue) #LightBlue
+
+    System(grafana,"<$grafana>\ngrafna dashboard")
+    influxdb<-grafana
+
+    frame aircatsrv{
+        Container(aircatsrvdeploy,"aircat-srv-deploy","deploy")
+
+        node pod1 as "pod" {
+            interface port1 as "port"
+            Container(aircatsrv1,"aircat-srv\n<$pod>","pod")
+            aircatsrv1-left->port1 :HTTP 8080
+            aircatsrv1-left->port1 :TCP 9000            
+        }
+        node pod2 as "pod" {
+            interface port2 as "port"
+            Container(aircatsrv2,"aircat-srv\n<$pod>","pod")
+            aircatsrv2-left->port2 :HTTP 8080
+            aircatsrv2-left->port2 :TCP 9000                
+        }
+    }
+
+    Rel(aircatsrv,influxdb,"write/query")
+    Rel(aircatsrv,redis   ,"write/query")
+
+    aircatsrvservice --> pod1 :port 9000
+    aircatsrvservice ..> pod2 
+    restsrvservice --> pod1
+    restsrvservice ..> pod2 :port 8080 
+}
+
+Rel(ing,restsrvservice,"http:80")
+Rel(ing,aircatsrvservice,"tcp:9000")
+
+Rel(user,ing,"http:80")
+Rel(device,ing,"tcp:9000")
+
+@enduml
