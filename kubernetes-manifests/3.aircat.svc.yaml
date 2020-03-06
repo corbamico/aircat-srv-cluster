@@ -6,7 +6,7 @@ metadata:
 spec:
   type: ClusterIP
   selector:
-    app: aircat-src
+    app: aircat-srv
   ports:
     - name: tcp
       port: 9000

@@ -129,15 +129,23 @@ func (s *connClusterCache) redirectJSON(mac string, json string) error {
 	var err error
 	var addr string
 	var url string
+	var req *http.Request
+	var res *http.Response
+
 	if addr, err = s.getL2Cached(mac); err != nil {
 		glog.V(logWarning).Infof("query redis (mac=%s), error=%s\n", mac, err.Error())
 		return err
 	}
-	glog.V(logDebug).Infof("query redis (mac=%s) success, result=%s\n", mac, addr)
-
-	url = fmt.Sprintf("http://%s:8080", addr)
-	if _, err = s.httpClient.Post(url, "", strings.NewReader(json)); err != nil {
+	url = fmt.Sprintf("http://%s:8080/v1/aircat/%s", addr, mac)
+	if req, err = http.NewRequest(http.MethodPut, url, strings.NewReader(json)); err != nil {
+		glog.V(logWarning).Infof("http.Request init error (%s)", err.Error())
 		return err
 	}
+
+	if res, err = s.httpClient.Do(req); err != nil {
+		glog.V(logDebug).Infof("redirect to url(%s), and error=%s", url, err.Error)
+		return err
+	}
+	glog.V(logDebug).Infof("redirect to url(%s), and response=%s", url, res.Status)
 	return nil
 }

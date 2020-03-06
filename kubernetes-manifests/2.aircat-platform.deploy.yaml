@@ -15,6 +15,9 @@ spec:
       containers:
       - name: influxdb
         image: influxdb:alpine
+        env:
+        - name: INFLUXDB_DB
+          value: "aircat"
         resources: {}
         ports:
         - containerPort: 8086

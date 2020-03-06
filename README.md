@@ -15,6 +15,12 @@ usage: aircat-srv --influxdb-addr INFLUXDB_ADDRESS --redis-addr REDIS_ADDRESS [-
   -v value                log level for V logs (v=7,if debug)
 ```
 
+```shell
+>set GOOS=linux
+>cd src\aircat-srv; go build -o ..\..\bin\aircat-srv; cd ..\..
+>skaffold dev --no-prune=false --cache-artifacts=false
+```
+
 ## Design idea
 
 1. listen at `:9000` for aircat device report measure

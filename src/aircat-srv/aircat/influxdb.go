@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"net/url"
 	"strings"
 	"time"
 
@@ -47,13 +46,14 @@ func (s *influxdb) write(mac string, json string) {
 }
 
 func (s *influxdb) queryLast(mac string) ([]byte, error) {
-	sql := `select last(*) from aircat where mac='%s'`
-	sql = url.QueryEscape(fmt.Sprintf(sql, mac))
-	uri := fmt.Sprintf("http://%s/query?db=aircat&q=%s", s.addr, sql)
-	//uri = url.QueryEscape(uri)
-	r, err := s.client.Get(uri)
+
+	url := fmt.Sprintf("http://%s/query?db=aircat", s.addr)
+	sql := `q=select last(*) from aircat where mac='%s'`
+	sql = fmt.Sprintf(sql, mac)
+
+	r, err := s.client.Post(url, "application/x-www-form-urlencoded", strings.NewReader(sql))
 	if err != nil {
-		glog.Errorf("Error sending request to influxdb, url=%s,error=%s", uri, err.Error())
+		glog.Errorf("Error sending request to influxdb, url=%s,error=%s", url, err.Error())
 		return nil, err
 	}
 	return ioutil.ReadAll(r.Body)
@@ -64,7 +64,7 @@ func formatLineProtocol(mac string, js string) string {
 	if err := json.Unmarshal([]byte(js), &air); err != nil {
 		return ""
 	}
-	return fmt.Sprintf("aircat,mac=\"%s\" humidity=%s,temperature=%s,value=%s,hcho=%s", mac, air.Humidity, air.Temperature, air.Value, air.Hcho)
+	return fmt.Sprintf("aircat,mac=%s humidity=%s,temperature=%s,value=%s,hcho=%s", mac, air.Humidity, air.Temperature, air.Value, air.Hcho)
 }
 
 //AirMeasure reported from device
